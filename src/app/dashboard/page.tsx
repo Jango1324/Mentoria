@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/app/login/actions'
 import type { Profile } from '@/types'
+import { getSavedOpportunities } from '@/lib/data/opportunities'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -22,6 +23,8 @@ const profile = data as Profile | null
   if (!profile) {
     redirect('/onboarding')
   }
+
+  const savedOpportunities = await getSavedOpportunities(user.id)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -83,7 +86,27 @@ const profile = data as Profile | null
           <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
             Saved Opportunities
           </h3>
-          <p className="text-sm text-gray-400">Coming soon.</p>
+          {savedOpportunities.length === 0 ? (
+            <p className="text-sm text-gray-400">No saved opportunities yet.</p>
+          ) : (
+            <ul className="space-y-3">
+              {savedOpportunities.map((saved) => (
+                <li key={saved.id} className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      {saved.opportunity.title}
+                    </p>
+                    <p className="text-xs text-gray-500">{saved.opportunity.category}</p>
+                  </div>
+                  {saved.opportunity.deadline && (
+                    <span className="text-xs text-gray-400 whitespace-nowrap">
+                      Due {saved.opportunity.deadline}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         {/* Courses */}
