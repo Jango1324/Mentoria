@@ -1,0 +1,50 @@
+import { NextResponse, type NextRequest } from 'next/server'
+import { updateSession } from '@/lib/supabase/middleware'
+
+const PROTECTED_ROUTES = ['/dashboard', '/onboarding', '/admin']
+const AUTH_ROUTES = ['/login']
+
+export async function middleware(request: NextRequest) {
+  const { supabaseResponse, user, supabase } = await updateSession(request)
+  const { pathname } = request.nextUrl
+
+  const isProtected = PROTECTED_ROUTES.some((r) => pathname.startsWith(r))
+  const isAuthRoute = AUTH_ROUTES.some((r) => pathname.startsWith(r))
+
+  // No session — redirect to login
+  if (!user && isProtected) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
+  // Has session — redirect away from login
+  if (user && isAuthRoute) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
+    return NextResponse.redirect(url)
+  }
+
+  // Has session on /dashboard — check onboarding status
+  if (user && pathname.startsWith('/dashboard')) {
+    const { data: profile } = await supabase
+  .from('profiles')
+  .select('onboarded')
+  .eq('id', user.id)
+  .single<{ onboarded: boolean }>()
+
+if (profile && !profile.onboarded) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/onboarding'
+      return NextResponse.redirect(url)
+    }
+  }
+
+  return supabaseResponse
+}
+
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+}
