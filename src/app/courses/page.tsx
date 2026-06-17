@@ -1,3 +1,4 @@
+import type React from 'react'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
@@ -46,17 +47,18 @@ export default async function CoursesPage() {
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
-            {coursesWithProgress.map((course) => (
+            {coursesWithProgress.map((course, i) => (
               <Link key={course.id} href={`/courses/${course.id}`} style={{ textDecoration: 'none' }}>
                 <div
-                  className="card-flat"
+                  className="card-flat card-enter"
                   style={{
+                    '--i': i,
                     cursor: 'pointer',
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 12,
-                  }}
+                  } as React.CSSProperties}
                 >
                   {/* Badges */}
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -103,8 +105,8 @@ export default async function CoursesPage() {
                         </div>
                         <div className="progress">
                           <div
-                            className="progress-fill accent"
-                            style={{ width: `${course.pct}%` }}
+                            className="progress-fill accent progress-fill-mount"
+                            style={{ '--pct': `${course.pct}%`, '--i': i } as React.CSSProperties}
                           />
                         </div>
                       </>

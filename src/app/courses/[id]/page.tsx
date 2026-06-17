@@ -1,3 +1,4 @@
+import type React from 'react'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
@@ -68,7 +69,10 @@ export default async function CourseDetailPage({
               <span className="body-sm">{pct}%</span>
             </div>
             <div className="progress">
-              <div className="progress-fill accent" style={{ width: `${pct}%` }} />
+              <div
+                className="progress-fill accent progress-fill-mount"
+                style={{ '--pct': `${pct}%` } as React.CSSProperties}
+              />
             </div>
             {nextLesson && pct > 0 && pct < 100 && (
               <p className="body-sm" style={{ marginTop: 8 }}>

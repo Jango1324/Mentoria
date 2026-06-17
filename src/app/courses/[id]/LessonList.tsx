@@ -1,6 +1,6 @@
 'use client'
 
-import { useOptimistic, useTransition } from 'react'
+import React, { useOptimistic, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { markLessonComplete, markLessonIncomplete } from '@/lib/actions/progress'
 import type { Lesson } from '@/types'
@@ -38,12 +38,39 @@ export default function LessonList({ lessons, completedIds }: Props) {
   }
 
   const completedCount = optimisticCompleted.size
+  const isComplete = lessons.length > 0 && completedCount === lessons.length
 
   return (
     <div>
       <p className="eyebrow" style={{ marginBottom: 20 }}>
-        Уроки · {completedCount} из {lessons.length}
+        {isComplete ? 'Все уроки завершены ✓' : `Уроки · ${completedCount} из ${lessons.length}`}
       </p>
+
+      {/* Completion banner */}
+      {isComplete && (
+        <div
+          className="card-enter"
+          style={{
+            '--i': 0,
+            background: '#e6f5ed',
+            border: '1px solid #a3d8b8',
+            borderRadius: 4,
+            padding: '16px 20px',
+            marginBottom: 20,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+          } as React.CSSProperties}
+        >
+          <span style={{ fontSize: 22, lineHeight: 1 }}>✓</span>
+          <div>
+            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--success)', lineHeight: 1.3 }}>
+              Курс завершён
+            </p>
+            <p className="body-sm">Все уроки пройдены. Отличная работа.</p>
+          </div>
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {lessons.map((lesson, i) => {
@@ -51,7 +78,9 @@ export default function LessonList({ lessons, completedIds }: Props) {
           return (
             <div
               key={lesson.id}
+              className="row-enter"
               style={{
+                '--i': i,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 16,
@@ -60,7 +89,7 @@ export default function LessonList({ lessons, completedIds }: Props) {
                 borderRadius: 4,
                 background: done ? 'var(--paper-2)' : '#fff',
                 transition: 'background 0.2s',
-              }}
+              } as React.CSSProperties}
             >
               {/* Circle indicator */}
               <div style={{

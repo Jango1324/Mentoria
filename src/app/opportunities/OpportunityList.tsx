@@ -33,18 +33,27 @@ function OpportunityCard({
   saved,
   onToggle,
   pending,
+  index,
 }: {
   opp: Opportunity
   saved: boolean
   onToggle: () => void
   pending: boolean
+  index: number
 }) {
   const dl = getDeadlineInfo(opp.deadline)
+  const [bouncing, setBouncing] = useState(false)
+
+  function handleToggle() {
+    setBouncing(true)
+    setTimeout(() => setBouncing(false), 400)
+    onToggle()
+  }
 
   return (
     <div
-      className="card-flat"
-      style={{ display: 'flex', flexDirection: 'column', gap: 12, height: '100%' }}
+      className="card-flat card-enter"
+      style={{ '--i': index, display: 'flex', flexDirection: 'column', gap: 12, height: '100%' } as React.CSSProperties}
     >
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         <span className="tag">{opp.category}</span>
@@ -96,9 +105,9 @@ function OpportunityCard({
           </a>
         )}
         <button
-          onClick={onToggle}
+          onClick={handleToggle}
           disabled={pending}
-          className={saved ? 'btn btn-dark' : 'btn btn-ghost'}
+          className={`${saved ? 'btn btn-dark' : 'btn btn-ghost'}${bouncing ? ' btn-bounce' : ''}`}
           style={{ fontSize: 12, padding: '7px 14px', marginLeft: 'auto', opacity: pending ? 0.6 : 1 }}
         >
           {saved ? '✓ Сохранено' : 'Сохранить'}
@@ -192,13 +201,14 @@ export default function OpportunityList({ opportunities, recommended, savedIds, 
             <hr className="rule" style={{ flex: 1, minWidth: 40 }} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-            {recommended.map((opp) => (
+            {recommended.map((opp, i) => (
               <OpportunityCard
                 key={opp.id}
                 opp={opp}
                 saved={optimisticSaved.has(opp.id)}
                 onToggle={() => toggleSave(opp)}
                 pending={isPending}
+                index={i}
               />
             ))}
           </div>
@@ -221,13 +231,14 @@ export default function OpportunityList({ opportunities, recommended, savedIds, 
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-            {filtered.map((opp) => (
+            {filtered.map((opp, i) => (
               <OpportunityCard
                 key={opp.id}
                 opp={opp}
                 saved={optimisticSaved.has(opp.id)}
                 onToggle={() => toggleSave(opp)}
                 pending={isPending}
+                index={i}
               />
             ))}
           </div>

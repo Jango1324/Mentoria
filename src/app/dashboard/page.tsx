@@ -1,3 +1,4 @@
+import type React from 'react'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
@@ -9,6 +10,7 @@ import {
   calculateCourseProgress,
 } from '@/lib/data/courses'
 import AppNav from '@/components/AppNav'
+import ProgressRing from '@/components/ProgressRing'
 import type { Profile } from '@/types'
 
 function daysUntil(deadline: string) {
@@ -132,21 +134,22 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {enrolledCourses.map((course) => (
+              {enrolledCourses.map((course, i) => (
                 <Link key={course.id} href={`/courses/${course.id}`} style={{ textDecoration: 'none' }}>
-                  <div className="card-flat" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-                      <p style={{ fontSize: 15, color: 'var(--ink)', fontWeight: 500 }}>
+                  <div
+                    className="card-flat row-enter"
+                    style={{ '--i': i, display: 'flex', alignItems: 'center', gap: 14 } as React.CSSProperties}
+                  >
+                    <ProgressRing pct={course.pct} size={44} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 15, color: 'var(--ink)', fontWeight: 500, lineHeight: 1.3 }}>
                         {course.title}
                       </p>
-                      <span className="body-sm" style={{ flexShrink: 0 }}>{course.pct}%</span>
+                      <p className="body-sm" style={{ marginTop: 2 }}>
+                        {course.completedLessons} из {course.totalLessons} уроков
+                      </p>
                     </div>
-                    <div className="progress">
-                      <div className="progress-fill accent" style={{ width: `${course.pct}%` }} />
-                    </div>
-                    <p className="body-sm">
-                      {course.completedLessons} из {course.totalLessons} уроков
-                    </p>
+                    <span className="body-sm" style={{ flexShrink: 0 }}>{course.pct}%</span>
                   </div>
                 </Link>
               ))}
@@ -248,9 +251,12 @@ export default async function DashboardPage() {
               <Link href="/opportunities" className="nav-link">Смотреть все →</Link>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
-              {recommended.slice(0, 3).map((opp) => (
+              {recommended.slice(0, 3).map((opp, i) => (
                 <Link key={opp.id} href="/opportunities" style={{ textDecoration: 'none' }}>
-                  <div className="card-flat" style={{ height: '100%' }}>
+                  <div
+                    className="card-flat card-enter"
+                    style={{ '--i': i, height: '100%' } as React.CSSProperties}
+                  >
                     <span className="tag" style={{ display: 'inline-block', marginBottom: 10 }}>
                       {opp.category}
                     </span>
