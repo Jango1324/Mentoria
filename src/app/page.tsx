@@ -120,7 +120,7 @@ export default function HomePage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 1, border: '1px solid var(--line)' }}>
             {features.map(({ num, title, desc, link }) => (
               <div key={num} style={{ padding: '36px 32px', borderRight: '1px solid var(--line)', position: 'relative' }}>
-                <div style={{ fontFamily: 'Instrument Serif, serif', fontSize: 13, color: 'var(--ink3)', marginBottom: 24 }}>{num}</div>
+                <div style={{ fontFamily: 'Instrument Serif, serif', fontSize: 13, color: 'var(--ink-3)', marginBottom: 24 }}>{num}</div>
                 <h3 className="display-sm" style={{ marginBottom: 12 }}>{title}</h3>
                 <p className="body-sm" style={{ marginBottom: 28, lineHeight: 1.7 }}>{desc}</p>
                 <Link href={link} style={{ textDecoration: 'none', fontSize: 13, color: 'var(--ink)', borderBottom: '1px solid var(--ink)', paddingBottom: 1, display: 'inline-block' }}>
@@ -165,7 +165,7 @@ export default function HomePage() {
               <p className="eyebrow">Курсы</p>
               <hr className="rule" style={{ flex: 1 }} />
             </div>
-            <Link href="/courses" style={{ fontSize: 13, color: 'var(--ink3)', textDecoration: 'none', borderBottom: '1px solid var(--line)', paddingBottom: 1, whiteSpace: 'nowrap' }}>
+            <Link href="/courses" style={{ fontSize: 13, color: 'var(--ink-3)', textDecoration: 'none', borderBottom: '1px solid var(--line)', paddingBottom: 1, whiteSpace: 'nowrap' }}>
               Все курсы →
             </Link>
           </div>
@@ -180,7 +180,7 @@ export default function HomePage() {
                     <span className="tag">{lessons} урока</span>
                   </div>
                   <h3 style={{ fontFamily: 'Instrument Serif, serif', fontSize: 20, color: 'var(--ink)', lineHeight: 1.2, marginBottom: 12 }}>{title}</h3>
-                  <p style={{ fontSize: 13, color: 'var(--ink3)' }}>Записаться →</p>
+                  <p style={{ fontSize: 13, color: 'var(--ink-3)' }}>Записаться →</p>
                 </div>
               </Link>
             ))}

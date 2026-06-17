@@ -15,6 +15,17 @@ export async function getPublishedCourses(): Promise<Course[]> {
   return data as Course[]
 }
 
+export async function getAllCourses(): Promise<Course[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('courses')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error || !data) return []
+  return data as Course[]
+}
+
 export async function getCourseWithLessons(courseId: string): Promise<CourseWithLessons | null> {
   const supabase = await createClient()
   const { data, error } = await supabase
@@ -22,6 +33,19 @@ export async function getCourseWithLessons(courseId: string): Promise<CourseWith
     .select('*, lessons(*)')
     .eq('id', courseId)
     .eq('is_published', true)
+    .order('order_index', { referencedTable: 'lessons', ascending: true })
+    .single()
+
+  if (error || !data) return null
+  return data as unknown as CourseWithLessons
+}
+
+export async function getCourseWithLessonsAdmin(courseId: string): Promise<CourseWithLessons | null> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('courses')
+    .select('*, lessons(*)')
+    .eq('id', courseId)
     .order('order_index', { referencedTable: 'lessons', ascending: true })
     .single()
 

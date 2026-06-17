@@ -25,15 +25,22 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Has session on /dashboard — check onboarding status
-  if (user && pathname.startsWith('/dashboard')) {
-    const { data: profile } = await supabase
-  .from('profiles')
-  .select('onboarded')
-  .eq('id', user.id)
-  .single<{ onboarded: boolean }>()
+  // Has session on a protected route — check onboarding status
+  // Excludes /onboarding (infinite loop) and /admin (admins may not onboard as students)
+  const requiresOnboarding =
+    !!user &&
+    isProtected &&
+    !pathname.startsWith('/onboarding') &&
+    !pathname.startsWith('/admin')
 
-if (profile && !profile.onboarded) {
+  if (requiresOnboarding) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('onboarded')
+      .eq('id', user.id)
+      .single<{ onboarded: boolean }>()
+
+    if (profile && !profile.onboarded) {
       const url = request.nextUrl.clone()
       url.pathname = '/onboarding'
       return NextResponse.redirect(url)

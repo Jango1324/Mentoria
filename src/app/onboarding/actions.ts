@@ -32,7 +32,6 @@ const { error } = await supabase
   .from('profiles')
   .update(profileUpdate)
   .eq('id', user.id)
-    .eq('id', user.id)
 
   if (error) return { error: error.message }
 

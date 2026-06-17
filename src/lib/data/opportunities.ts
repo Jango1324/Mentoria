@@ -13,6 +13,17 @@ export async function getActiveOpportunities(): Promise<Opportunity[]> {
   return data as Opportunity[]
 }
 
+export async function getAllOpportunities(): Promise<Opportunity[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('opportunities')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error || !data) return []
+  return data as Opportunity[]
+}
+
 export async function getRecommendedOpportunities(interests: string[]): Promise<Opportunity[]> {
   if (interests.length === 0) return []
   const all = await getActiveOpportunities()

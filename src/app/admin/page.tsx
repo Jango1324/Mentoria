@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getActiveOpportunities } from '@/lib/data/opportunities'
-import { getPublishedCourses, getCourseWithLessons } from '@/lib/data/courses'
+import { getAllOpportunities } from '@/lib/data/opportunities'
+import { getAllCourses, getCourseWithLessonsAdmin } from '@/lib/data/courses'
 import AppNav from '@/components/AppNav'
 import AdminTabs from './AdminTabs'
 import type { Profile, Course, Lesson } from '@/types'
@@ -24,13 +24,13 @@ export default async function AdminPage() {
   if (!profile || profile.role !== 'admin') redirect('/dashboard')
 
   const [opportunities, courses] = await Promise.all([
-    getActiveOpportunities(),
-    getPublishedCourses(),
+    getAllOpportunities(),
+    getAllCourses(),
   ])
 
   const coursesWithLessons: CourseWithLessons[] = await Promise.all(
     courses.map(async (course) => {
-      const withLessons = await getCourseWithLessons(course.id)
+      const withLessons = await getCourseWithLessonsAdmin(course.id)
       return { ...course, lessons: withLessons?.lessons ?? [] }
     })
   )
