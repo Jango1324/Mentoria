@@ -68,14 +68,9 @@ alter table public.courses enable row level security;
 alter table public.lessons enable row level security;
 alter table public.lesson_progress enable row level security;
 
-create index if not exists idx_saved_opportunities_user_id
-on public.saved_opportunities(user_id);
-
-create index if not exists idx_lessons_course_id
-on public.lessons(course_id);
-
-create index if not exists idx_lesson_progress_user_id
-on public.lesson_progress(user_id);
+create index if not exists idx_saved_opportunities_user_id on public.saved_opportunities(user_id);
+create index if not exists idx_lessons_course_id on public.lessons(course_id);
+create index if not exists idx_lesson_progress_user_id on public.lesson_progress(user_id);
 
 drop policy if exists "Users can read own profile" on public.profiles;
 create policy "Users can read own profile"
@@ -275,13 +270,14 @@ with check (auth.uid() = user_id);
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
-security definer set search_path = public
+security definer
+set search_path = public
 as $$
 begin
   insert into public.profiles (id, full_name, avatar_url)
   values (
     new.id,
-    new.raw_user_meta_data->>'full_name',
+    coalesce(new.raw_user_meta_data->>'full_name', new.email),
     new.raw_user_meta_data->>'avatar_url'
   )
   on conflict (id) do nothing;
@@ -294,4 +290,10 @@ drop trigger if exists on_auth_user_created on auth.users;
 
 create trigger on_auth_user_created
 after insert on auth.users
-for each row execute procedure public.handle_new_user();
+for each row
+execute procedure public.handle_new_user();
+
+grant usage on schema public to anon, authenticated;
+grant select on public.opportunities to authenticated;
+grant select on public.courses to authenticated;
+grant select on public.lessons to authenticated;
