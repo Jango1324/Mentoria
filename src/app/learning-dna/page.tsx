@@ -2,75 +2,54 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AppNav from '@/components/AppNav'
 import { getUserDNA } from '@/lib/actions/dna'
-import { DNA_PROFILES } from '@/lib/data/dna'
-import type { LearningDNA } from '@/types'
+import { getActiveOpportunities } from '@/lib/data/opportunities'
+import { getPublishedCourses } from '@/lib/data/courses'
+import QuizClient from './QuizClient'
+import ResultView from './ResultView'
 
-export default async function LearningDNAPage() {
+export default async function LearningDNAPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ retake?: string }>
+}) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const dna = await getUserDNA() as LearningDNA | null
-  const profile = dna ? DNA_PROFILES[dna.dna_type] : null
+  const { retake } = await searchParams
+  const forceRetake = retake === '1'
+
+  const [dna, opportunities, courses] = await Promise.all([
+    forceRetake ? Promise.resolve(null) : getUserDNA(),
+    getActiveOpportunities(),
+    getPublishedCourses(),
+  ])
 
   return (
     <div style={{ background: 'var(--paper)', minHeight: '100vh' }}>
       <AppNav activePath="/learning-dna" />
 
-      <main
-        className="container"
-        style={{ padding: '64px 24px', maxWidth: 640 }}
-      >
-        <p className="eyebrow" style={{ marginBottom: 14 }}>Learning DNA</p>
+      <main className="container" style={{ padding: '48px 24px', maxWidth: 640 }}>
 
-        {dna && profile ? (
-          <>
-            <h1 className="display-sm" style={{ marginBottom: 8 }}>
-              You are a {dna.dna_type}
-            </h1>
-            <p className="body-lg" style={{ marginBottom: 32 }}>
-              {profile.description}
-            </p>
-
-            <div className="card-flat" style={{ marginBottom: 16 }}>
-              <p className="eyebrow" style={{ marginBottom: 12 }}>Strengths</p>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {profile.strengths.map((s) => (
-                  <li key={s} style={{ fontSize: 14, color: 'var(--ink-2)' }}>
-                    {s}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="card-flat" style={{ marginBottom: 32 }}>
-              <p className="eyebrow" style={{ marginBottom: 12 }}>Watch out for</p>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {profile.weaknesses.map((w) => (
-                  <li key={w} style={{ fontSize: 14, color: 'var(--ink-2)' }}>
-                    {w}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <a href="/learning-dna" className="btn btn-ghost" style={{ fontSize: 13 }}>
-              Retake quiz
-            </a>
-          </>
+        {dna ? (
+          <ResultView
+            dna={dna}
+            opportunities={opportunities}
+            courses={courses}
+          />
         ) : (
           <>
-            <h1 className="display-sm" style={{ marginBottom: 12 }}>
+            <p className="eyebrow" style={{ marginBottom: 14 }}>Learning DNA</p>
+            <h1 className="display-sm" style={{ marginBottom: 10 }}>
               Discover your learning style
             </h1>
-            <p className="body-lg" style={{ marginBottom: 32 }}>
-              13 questions. Under 3 minutes. A personalised map of how you learn best.
+            <p className="body-sm" style={{ marginBottom: 44 }}>
+              13 questions · under 3 minutes
             </p>
-            <p className="body-sm">
-              Quiz interface coming in Stage 4B.
-            </p>
+            <QuizClient opportunities={opportunities} courses={courses} />
           </>
         )}
+
       </main>
     </div>
   )
