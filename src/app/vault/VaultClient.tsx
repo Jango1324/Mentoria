@@ -1,18 +1,24 @@
 'use client'
 
-import { useState, useTransition, useRef, useMemo } from 'react'
-import type { NoteWithTags, Tag } from '@/types'
+import { useState, useTransition, useRef, useMemo, useCallback } from 'react'
+import type { NoteWithTags, NoteLink, Tag } from '@/types'
 import {
   createNote,
   updateNote,
+  updateNotePosition,
   deleteNote,
   upsertTag,
   addTagToNote,
   removeTagFromNote,
+  createLink,
+  deleteLink,
 } from '@/lib/actions/vault'
+import GraphView from './GraphView'
+import LinkPanel from './LinkPanel'
 
 interface Props {
   initialNotes: NoteWithTags[]
+  initialLinks: NoteLink[]
 }
 
 function formatDate(iso: string): string {
@@ -23,9 +29,11 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en', { month: 'short', day: 'numeric' })
 }
 
-export default function VaultClient({ initialNotes }: Props) {
+export default function VaultClient({ initialNotes, initialLinks }: Props) {
   const [notes, setNotes] = useState<NoteWithTags[]>(initialNotes)
+  const [links, setLinks] = useState<NoteLink[]>(initialLinks)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [view, setView] = useState<'editor' | 'graph'>('editor')
   const [query, setQuery] = useState('')
   const [activeTag, setActiveTag] = useState<string | null>(null)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
@@ -70,7 +78,7 @@ export default function VaultClient({ initialNotes }: Props) {
     }, 900)
   }
 
-  // ── Note selection ──────────────────────────────────────────────────────────
+  // ── Selection ───────────────────────────────────────────────────────────────
 
   function handleSelectNote(id: string) {
     const note = notes.find(n => n.id === id)
@@ -110,6 +118,7 @@ export default function VaultClient({ initialNotes }: Props) {
       setDraftContent('')
       setTagInput('')
       setSaveStatus('idle')
+      setView('editor')
     })
   }
 
@@ -120,6 +129,7 @@ export default function VaultClient({ initialNotes }: Props) {
     startTransition(async () => {
       await deleteNote(id)
       setNotes(prev => prev.filter(n => n.id !== id))
+      setLinks(prev => prev.filter(l => l.source_note_id !== id && l.target_note_id !== id))
       setSelectedId(prev => (prev === id ? null : prev))
     })
   }
@@ -157,7 +167,50 @@ export default function VaultClient({ initialNotes }: Props) {
     })
   }
 
+  // ── Links ───────────────────────────────────────────────────────────────────
+
+  function handleAddLink(targetId: string) {
+    if (!selectedId) return
+    const sourceId = selectedId
+    startTransition(async () => {
+      const { data: link, error } = await createLink(sourceId, targetId)
+      if (error || !link) return
+      setLinks(prev => [...prev, link])
+    })
+  }
+
+  function handleRemoveLink(linkId: string) {
+    startTransition(async () => {
+      await deleteLink(linkId)
+      setLinks(prev => prev.filter(l => l.id !== linkId))
+    })
+  }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleSavePositions = useCallback((newPositions: Array<{ id: string; x: number; y: number }>) => {
+    startTransition(async () => {
+      await Promise.all(newPositions.map(p => updateNotePosition(p.id, p.x, p.y)))
+      setNotes(prev => prev.map(n => {
+        const p = newPositions.find(pos => pos.id === n.id)
+        return p ? { ...n, pos_x: p.x, pos_y: p.y } : n
+      }))
+    })
+  }, [])
+
   // ── Render ──────────────────────────────────────────────────────────────────
+
+  const tabBtn = (v: 'editor' | 'graph') => ({
+    padding: '5px 14px',
+    fontSize: 10,
+    fontWeight: 600,
+    letterSpacing: '0.1em',
+    background: view === v ? 'var(--ink)' : 'transparent',
+    color: view === v ? '#fff' : 'var(--ink-3)',
+    border: 'none',
+    cursor: 'pointer' as const,
+    fontFamily: 'Inter, sans-serif',
+    transition: 'background 0.12s',
+  })
 
   return (
     <div style={{
@@ -176,7 +229,6 @@ export default function VaultClient({ initialNotes }: Props) {
         overflow: 'hidden',
       }}>
 
-        {/* Search */}
         <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--line)' }}>
           <input
             type="search"
@@ -188,7 +240,6 @@ export default function VaultClient({ initialNotes }: Props) {
           />
         </div>
 
-        {/* Tag filter */}
         {allTags.length > 0 && (
           <div style={{
             padding: '10px 14px',
@@ -224,22 +275,16 @@ export default function VaultClient({ initialNotes }: Props) {
           </div>
         )}
 
-        {/* Notes list */}
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {filteredNotes.length === 0 ? (
-            <p style={{
-              padding: '28px 16px',
-              fontSize: 13,
-              color: 'var(--ink-3)',
-              textAlign: 'center',
-            }}>
+            <p style={{ padding: '28px 16px', fontSize: 13, color: 'var(--ink-3)', textAlign: 'center' }}>
               {query || activeTag ? 'No matches' : 'No notes yet'}
             </p>
           ) : (
             filteredNotes.map(note => (
               <button
                 key={note.id}
-                onClick={() => handleSelectNote(note.id)}
+                onClick={() => { handleSelectNote(note.id); setView('editor') }}
                 style={{
                   width: '100%',
                   textAlign: 'left',
@@ -271,7 +316,6 @@ export default function VaultClient({ initialNotes }: Props) {
           )}
         </div>
 
-        {/* New note */}
         <div style={{ padding: '12px 14px', borderTop: '1px solid var(--line)' }}>
           <button
             onClick={handleCreate}
@@ -284,21 +328,31 @@ export default function VaultClient({ initialNotes }: Props) {
         </div>
       </aside>
 
-      {/* ── Editor ──────────────────────────────────────────────────────────── */}
+      {/* ── Main ────────────────────────────────────────────────────────────── */}
       <main style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
-        {selectedNote ? (
-          <>
-            {/* Toolbar */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '0 40px',
-              height: 48,
-              borderBottom: '1px solid var(--line)',
-              flexShrink: 0,
-            }}>
+        {/* Toolbar */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '0 40px',
+          height: 48,
+          borderBottom: '1px solid var(--line)',
+          flexShrink: 0,
+        }}>
+          <div style={{
+            display: 'inline-flex',
+            border: '1px solid var(--line)',
+            borderRadius: 3,
+            overflow: 'hidden',
+          }}>
+            <button onClick={() => setView('editor')} style={tabBtn('editor')}>EDITOR</button>
+            <button onClick={() => setView('graph')} style={tabBtn('graph')}>GRAPH</button>
+          </div>
+
+          {view === 'editor' && selectedNote && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
               <span style={{
                 fontSize: 10,
                 fontWeight: 600,
@@ -328,16 +382,29 @@ export default function VaultClient({ initialNotes }: Props) {
                 DELETE
               </button>
             </div>
+          )}
+        </div>
 
-            {/* Content area */}
+        {/* Content */}
+        {view === 'graph' ? (
+          <div style={{ flex: 1, overflow: 'hidden' }}>
+            <GraphView
+              notes={notes}
+              links={links}
+              selectedId={selectedId}
+              onSelectNote={(id) => { handleSelectNote(id); setView('editor') }}
+              onSavePositions={handleSavePositions}
+            />
+          </div>
+        ) : selectedNote ? (
+          <>
             <div style={{
               flex: 1,
               overflowY: 'auto',
-              padding: '36px 40px 48px',
+              padding: '36px 40px 24px',
               display: 'flex',
               flexDirection: 'column',
             }}>
-              {/* Title */}
               <input
                 type="text"
                 value={draftTitle}
@@ -358,7 +425,6 @@ export default function VaultClient({ initialNotes }: Props) {
                 }}
               />
 
-              {/* Tags */}
               <div style={{
                 display: 'flex',
                 flexWrap: 'wrap',
@@ -415,7 +481,6 @@ export default function VaultClient({ initialNotes }: Props) {
 
               <hr className="rule" style={{ marginBottom: 24 }} />
 
-              {/* Content */}
               <textarea
                 value={draftContent}
                 onChange={e => handleContentChange(e.target.value)}
@@ -430,14 +495,22 @@ export default function VaultClient({ initialNotes }: Props) {
                   outline: 'none',
                   resize: 'none',
                   width: '100%',
-                  minHeight: '50vh',
+                  minHeight: '40vh',
                   padding: 0,
                 }}
               />
             </div>
+
+            <LinkPanel
+              selectedNote={selectedNote}
+              allNotes={notes}
+              links={links}
+              onAddLink={handleAddLink}
+              onRemoveLink={handleRemoveLink}
+              isPending={isPending}
+            />
           </>
         ) : (
-          /* Empty state */
           <div style={{
             flex: 1,
             display: 'flex',
@@ -452,8 +525,8 @@ export default function VaultClient({ initialNotes }: Props) {
             </p>
           </div>
         )}
-      </main>
 
+      </main>
     </div>
   )
 }

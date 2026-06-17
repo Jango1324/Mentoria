@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AppNav from '@/components/AppNav'
-import { getNotes } from '@/lib/data/vault'
+import { getNotes, getNoteLinks } from '@/lib/data/vault'
 import VaultClient from './VaultClient'
 
 export default async function VaultPage() {
@@ -9,12 +9,15 @@ export default async function VaultPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const notes = await getNotes(user.id)
+  const [notes, links] = await Promise.all([
+    getNotes(user.id),
+    getNoteLinks(user.id),
+  ])
 
   return (
     <div style={{ background: 'var(--paper)' }}>
       <AppNav activePath="/vault" />
-      <VaultClient initialNotes={notes} />
+      <VaultClient initialNotes={notes} initialLinks={links} />
     </div>
   )
 }
