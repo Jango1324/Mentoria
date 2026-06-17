@@ -36,6 +36,12 @@ export default function AppNav({ activePath }: Props) {
             Курсы
           </Link>
           <Link
+            href="/learning-dna"
+            className={`nav-link${activePath === '/learning-dna' ? ' active' : ''}`}
+          >
+            DNA
+          </Link>
+          <Link
             href="/dashboard"
             className={`nav-link${activePath === '/dashboard' ? ' active' : ''}`}
           >

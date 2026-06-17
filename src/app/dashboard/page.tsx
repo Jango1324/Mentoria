@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getSavedOpportunities, getRecommendedOpportunities } from '@/lib/data/opportunities'
+import { getUserDNA } from '@/lib/actions/dna'
+import { DNA_PROFILES } from '@/lib/data/dna'
 import {
   getPublishedCourses,
   getCourseWithLessons,
@@ -33,9 +35,10 @@ export default async function DashboardPage() {
 
   const interests = profile.interests ?? []
 
-  const [savedOpportunities, courses] = await Promise.all([
+  const [savedOpportunities, courses, dna] = await Promise.all([
     getSavedOpportunities(user.id),
     getPublishedCourses(),
+    getUserDNA(),
   ])
 
   // Course progress
@@ -114,6 +117,62 @@ export default async function DashboardPage() {
               </div>
             )}
           </div>
+        </section>
+
+        {/* Learning DNA */}
+        <section style={{ marginBottom: 48 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16 }}>
+            <p className="eyebrow">Learning DNA</p>
+            {dna && (
+              <Link href="/learning-dna?retake=1" className="nav-link">Пройти снова →</Link>
+            )}
+          </div>
+
+          {dna ? (
+            (() => {
+              const profile = DNA_PROFILES[dna.dna_type]
+              return (
+                <Link href="/learning-dna" style={{ textDecoration: 'none' }}>
+                  <div className="card-flat" style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+                    <div
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 4,
+                        background: profile.color + '18',
+                        border: `1px solid ${profile.color}44`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <span style={{ fontSize: 11, fontWeight: 700, color: profile.color, letterSpacing: '0.04em' }}>
+                        {dna.dna_type.slice(0, 2).toUpperCase()}
+                      </span>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 15, fontWeight: 500, color: 'var(--ink)' }}>
+                        {dna.dna_type}
+                      </p>
+                      <p className="body-sm" style={{ marginTop: 2 }}>
+                        {profile.strengths[0]} · {profile.strengths[1]}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              )
+            })()
+          ) : (
+            <div className="card-flat" style={{ textAlign: 'center', padding: '32px 24px' }}>
+              <p className="body-sm" style={{ marginBottom: 16 }}>
+                Узнайте свой стиль обучения за 3 минуты.
+              </p>
+              <Link href="/learning-dna" className="btn btn-dark" style={{ fontSize: 13 }}>
+                Пройти тест
+              </Link>
+            </div>
+          )}
         </section>
 
         {/* My Courses */}
