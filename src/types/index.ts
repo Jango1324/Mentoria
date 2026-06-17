@@ -83,6 +83,43 @@ export interface CourseWithProgress extends Course {
   completed_count: number
 }
 
+export interface Note {
+  id: string
+  user_id: string
+  title: string
+  content: string
+  pos_x: number | null
+  pos_y: number | null
+  created_at: string
+  updated_at: string
+}
+
+export interface Tag {
+  id: string
+  user_id: string
+  name: string
+  color: string | null
+  created_at: string
+}
+
+export interface NoteTag {
+  note_id: string
+  tag_id: string
+  created_at: string
+}
+
+export interface NoteLink {
+  id: string
+  user_id: string
+  source_note_id: string
+  target_note_id: string
+  created_at: string
+}
+
+export interface NoteWithTags extends Note {
+  tags: Tag[]
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -120,6 +157,26 @@ export interface Database {
         Row: LearningDNA
         Insert: Omit<LearningDNA, 'id' | 'created_at'>
         Update: Partial<Omit<LearningDNA, 'id' | 'user_id' | 'created_at'>>
+      }
+      notes: {
+        Row: Note
+        Insert: Omit<Note, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<Note, 'id' | 'user_id' | 'created_at' | 'updated_at'>>
+      }
+      tags: {
+        Row: Tag
+        Insert: Omit<Tag, 'id' | 'created_at'>
+        Update: Partial<Omit<Tag, 'id' | 'user_id' | 'created_at'>>
+      }
+      note_tags: {
+        Row: NoteTag
+        Insert: Omit<NoteTag, 'created_at'>
+        Update: never
+      }
+      note_links: {
+        Row: NoteLink
+        Insert: Omit<NoteLink, 'id' | 'created_at'>
+        Update: never
       }
     }
   }
