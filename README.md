@@ -3,7 +3,6 @@
 ## Шаг 1 — Установка зависимостей
 
 ```bash
-cd mentoria-hub
 npm install
 ```
 
