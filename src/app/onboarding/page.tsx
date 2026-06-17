@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { saveOnboarding } from './actions'
 
 const INTERESTS = [
@@ -36,17 +37,17 @@ export default function OnboardingPage() {
     setError(null)
 
     if (!fullName.trim()) {
-      setError('Please enter your full name.')
+      setError('Введите полное имя.')
       return
     }
 
     if (!country.trim()) {
-      setError('Please enter your country.')
+      setError('Введите страну.')
       return
     }
 
     if (interests.length === 0) {
-      setError('Please select at least one interest.')
+      setError('Выберите хотя бы один интерес.')
       return
     }
 
@@ -63,28 +64,65 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
-      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow">
-        <h1 className="mb-2 text-2xl font-semibold text-gray-900">
-          Tell us about yourself
-        </h1>
-        <p className="mb-6 text-sm text-gray-500">
-          This helps us personalize your experience.
+    <div style={{
+      background: 'var(--paper)',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px',
+    }}>
+
+      {/* Logo */}
+      <Link
+        href="/"
+        style={{
+          fontFamily: 'Instrument Serif, serif',
+          fontSize: 20,
+          letterSpacing: '-0.01em',
+          color: 'var(--ink)',
+          textDecoration: 'none',
+          marginBottom: 36,
+        }}
+      >
+        Mentoria Hub
+      </Link>
+
+      {/* Card */}
+      <div className="card-flat" style={{ width: '100%', maxWidth: 480, padding: '40px 36px' }}>
+
+        {/* Header */}
+        <p className="eyebrow" style={{ marginBottom: 10 }}>Шаг 1 из 1</p>
+        <h1 className="display-sm" style={{ marginBottom: 6 }}>Расскажите о себе</h1>
+        <p className="body-sm" style={{ marginBottom: 28 }}>
+          Это поможет нам персонализировать вашу платформу.
         </p>
 
+        {/* Error */}
         {error && (
-          <p className="mb-4 rounded bg-red-50 p-3 text-sm text-red-600">
+          <div style={{
+            background: '#fdf0e8',
+            border: '1px solid #f5c4a0',
+            color: 'var(--warn)',
+            borderRadius: 4,
+            padding: '10px 14px',
+            fontSize: 13,
+            marginBottom: 20,
+          }}>
             {error}
-          </p>
+          </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          {/* Full name */}
           <div>
             <label
               htmlFor="fullName"
-              className="mb-1 block text-sm font-medium text-gray-700"
+              style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--ink-2)', marginBottom: 6 }}
             >
-              Full name
+              Полное имя
             </label>
             <input
               id="fullName"
@@ -92,38 +130,40 @@ export default function OnboardingPage() {
               required
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Zhangir Meirbek"
-              className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Иван Иванов"
+              className="input"
             />
           </div>
 
+          {/* Grade */}
           <div>
             <label
               htmlFor="grade"
-              className="mb-1 block text-sm font-medium text-gray-700"
+              style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--ink-2)', marginBottom: 6 }}
             >
-              Grade
+              Класс
             </label>
             <select
               id="grade"
               required
               value={grade}
               onChange={(e) => setGrade(Number(e.target.value))}
-              className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input"
             >
-              <option value={8}>Grade 8</option>
-              <option value={9}>Grade 9</option>
-              <option value={10}>Grade 10</option>
-              <option value={11}>Grade 11</option>
+              <option value={8}>8 класс</option>
+              <option value={9}>9 класс</option>
+              <option value={10}>10 класс</option>
+              <option value={11}>11 класс</option>
             </select>
           </div>
 
+          {/* Country */}
           <div>
             <label
               htmlFor="country"
-              className="mb-1 block text-sm font-medium text-gray-700"
+              style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--ink-2)', marginBottom: 6 }}
             >
-              Country
+              Страна
             </label>
             <input
               id="country"
@@ -131,39 +171,54 @@ export default function OnboardingPage() {
               required
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              placeholder="Kazakhstan"
-              className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Казахстан"
+              className="input"
             />
           </div>
 
+          {/* Interests — pill toggles */}
           <div>
-            <p className="mb-2 block text-sm font-medium text-gray-700">
-              Interests
+            <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink-2)', marginBottom: 10 }}>
+              Интересы
             </p>
-            <div className="grid grid-cols-2 gap-2">
-              {INTERESTS.map((interest) => (
-                <label
-                  key={interest}
-                  className="flex cursor-pointer items-center gap-2 text-sm text-gray-700"
-                >
-                  <input
-                    type="checkbox"
-                    checked={interests.includes(interest)}
-                    onChange={() => toggleInterest(interest)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  {interest}
-                </label>
-              ))}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {INTERESTS.map((interest) => {
+                const selected = interests.includes(interest)
+                return (
+                  <button
+                    key={interest}
+                    type="button"
+                    onClick={() => toggleInterest(interest)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      letterSpacing: '0.02em',
+                      padding: '6px 14px',
+                      borderRadius: 100,
+                      border: `1px solid ${selected ? 'var(--ink)' : 'var(--line)'}`,
+                      background: selected ? 'var(--ink)' : '#fff',
+                      color: selected ? '#fff' : 'var(--ink-2)',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {interest}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
+          {/* Submit */}
           <button
             type="submit"
             disabled={isPending}
-            className="w-full rounded bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="btn btn-dark"
+            style={{ width: '100%', justifyContent: 'center', marginTop: 4, opacity: isPending ? 0.6 : 1 }}
           >
-            {isPending ? 'Saving...' : 'Continue'}
+            {isPending ? 'Сохранение...' : 'Продолжить'}
           </button>
         </form>
       </div>

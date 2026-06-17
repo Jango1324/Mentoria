@@ -1,129 +1,269 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { signOut } from '@/app/login/actions'
+import { getSavedOpportunities, getRecommendedOpportunities } from '@/lib/data/opportunities'
+import {
+  getPublishedCourses,
+  getCourseWithLessons,
+  getUserCourseProgress,
+  calculateCourseProgress,
+} from '@/lib/data/courses'
+import AppNav from '@/components/AppNav'
 import type { Profile } from '@/types'
-import { getSavedOpportunities } from '@/lib/data/opportunities'
+
+function daysUntil(deadline: string) {
+  return Math.ceil((new Date(deadline).getTime() - Date.now()) / 86400000)
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient()
-
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
-  if (!user) {
-    redirect('/login')
-  }
+  const { data } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
 
-const { data } = await supabase
-  .from('profiles')
-  .select('*')
-  .eq('id', user.id)
-  .single()
+  const profile = data as Profile | null
+  if (!profile) redirect('/onboarding')
 
-const profile = data as Profile | null
-  if (!profile) {
-    redirect('/onboarding')
-  }
+  const interests = profile.interests ?? []
 
-  const savedOpportunities = await getSavedOpportunities(user.id)
+  const [savedOpportunities, courses] = await Promise.all([
+    getSavedOpportunities(user.id),
+    getPublishedCourses(),
+  ])
+
+  // Course progress
+  const coursesWithProgress = await Promise.all(
+    courses.map(async (course) => {
+      const [withLessons, progress] = await Promise.all([
+        getCourseWithLessons(course.id),
+        getUserCourseProgress(user.id, course.id),
+      ])
+      const totalLessons = withLessons?.lessons.length ?? 0
+      const completedLessons = progress.filter((p) => p.completed).length
+      const pct = calculateCourseProgress(totalLessons, completedLessons)
+      return { ...course, totalLessons, completedLessons, pct }
+    })
+  )
+
+  const enrolledCourses = coursesWithProgress.filter((c) => c.completedLessons > 0)
+
+  // Upcoming deadlines from saved opportunities
+  const upcomingDeadlines = savedOpportunities
+    .filter((s) => {
+      if (!s.opportunity.deadline) return false
+      return new Date(s.opportunity.deadline) >= new Date()
+    })
+    .sort(
+      (a, b) =>
+        new Date(a.opportunity.deadline!).getTime() -
+        new Date(b.opportunity.deadline!).getTime()
+    )
+    .slice(0, 5)
+
+  // Recommendations based on interests
+  const recommended =
+    interests.length > 0 ? await getRecommendedOpportunities(interests) : []
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-gray-900">Mentoria Hub</h1>
-        <form action={signOut}>
-          <button
-            type="submit"
-            className="text-sm text-gray-500 hover:text-gray-900"
-          >
-            Sign out
-          </button>
-        </form>
-      </header>
+    <div style={{ background: 'var(--paper)', minHeight: '100vh' }}>
+      <AppNav activePath="/dashboard" />
 
-      <main className="max-w-3xl mx-auto px-6 py-10 space-y-8">
+      <main className="container" style={{ padding: '48px 24px', maxWidth: 860 }}>
+
         {/* Welcome */}
-        <section>
-          <h2 className="text-2xl font-semibold text-gray-900">
-            Welcome, {profile.full_name ?? 'Student'}
-          </h2>
+        <div style={{ marginBottom: 48 }}>
+          <p className="eyebrow" style={{ marginBottom: 12 }}>Личный кабинет</p>
+          <h1 className="display-sm">
+            Привет, {profile.full_name?.split(' ')[0] ?? 'Студент'}
+          </h1>
+        </div>
+
+        {/* Profile */}
+        <section style={{ marginBottom: 48 }}>
+          <p className="eyebrow" style={{ marginBottom: 16 }}>Профиль</p>
+          <div className="card-flat">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 20, marginBottom: interests.length > 0 ? 20 : 0 }}>
+              <div>
+                <p className="body-sm">Класс</p>
+                <p style={{ fontSize: 15, color: 'var(--ink)', fontWeight: 500, marginTop: 4 }}>
+                  {profile.grade ?? '—'}
+                </p>
+              </div>
+              <div>
+                <p className="body-sm">Страна</p>
+                <p style={{ fontSize: 15, color: 'var(--ink)', fontWeight: 500, marginTop: 4 }}>
+                  {profile.country ?? '—'}
+                </p>
+              </div>
+            </div>
+            {interests.length > 0 && (
+              <div>
+                <p className="body-sm" style={{ marginBottom: 8 }}>Интересы</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {interests.map((interest: string) => (
+                    <span key={interest} className="tag">{interest}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </section>
 
-        {/* Profile card */}
-        <section className="bg-white rounded-lg shadow p-6 space-y-4">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
-            Your Profile
-          </h3>
-          <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
-            <div>
-              <span className="font-medium">Grade: </span>
-              {profile.grade ?? '—'}
-            </div>
-            <div>
-              <span className="font-medium">Country: </span>
-              {profile.country ?? '—'}
-            </div>
+        {/* My Courses */}
+        <section style={{ marginBottom: 48 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16 }}>
+            <p className="eyebrow">Мои курсы</p>
+            <Link href="/courses" className="nav-link">Все курсы →</Link>
           </div>
-          {profile.interests && profile.interests.length > 0 && (
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Interests</p>
-              <div className="flex flex-wrap gap-2">
-                {profile.interests.map((interest: string) => (
-                  <span
-                    key={interest}
-                    className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
-                  >
-                    {interest}
-                  </span>
-                ))}
-              </div>
+
+          {enrolledCourses.length === 0 ? (
+            <div className="card-flat" style={{ textAlign: 'center', padding: '32px 24px' }}>
+              <p className="body-sm" style={{ marginBottom: 16 }}>
+                Вы ещё не начали ни одного курса.
+              </p>
+              <Link href="/courses" className="btn btn-dark" style={{ fontSize: 13 }}>
+                Начать обучение
+              </Link>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {enrolledCourses.map((course) => (
+                <Link key={course.id} href={`/courses/${course.id}`} style={{ textDecoration: 'none' }}>
+                  <div className="card-flat" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                      <p style={{ fontSize: 15, color: 'var(--ink)', fontWeight: 500 }}>
+                        {course.title}
+                      </p>
+                      <span className="body-sm" style={{ flexShrink: 0 }}>{course.pct}%</span>
+                    </div>
+                    <div className="progress">
+                      <div className="progress-fill accent" style={{ width: `${course.pct}%` }} />
+                    </div>
+                    <p className="body-sm">
+                      {course.completedLessons} из {course.totalLessons} уроков
+                    </p>
+                  </div>
+                </Link>
+              ))}
             </div>
           )}
         </section>
 
         {/* Saved Opportunities */}
-        <section className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
-            Saved Opportunities
-          </h3>
+        <section style={{ marginBottom: 48 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16 }}>
+            <p className="eyebrow">Сохранённые</p>
+            <Link href="/opportunities" className="nav-link">Все возможности →</Link>
+          </div>
+
           {savedOpportunities.length === 0 ? (
-            <p className="text-sm text-gray-400">No saved opportunities yet.</p>
+            <div className="card-flat" style={{ textAlign: 'center', padding: '32px 24px' }}>
+              <p className="body-sm" style={{ marginBottom: 16 }}>
+                Нет сохранённых возможностей.
+              </p>
+              <Link href="/opportunities" className="btn btn-dark" style={{ fontSize: 13 }}>
+                Найти возможности
+              </Link>
+            </div>
           ) : (
-            <ul className="space-y-3">
-              {savedOpportunities.map((saved) => (
-                <li key={saved.id} className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-800">
-                      {saved.opportunity.title}
-                    </p>
-                    <p className="text-xs text-gray-500">{saved.opportunity.category}</p>
+            <div className="card-flat" style={{ padding: 0 }}>
+              {savedOpportunities.map((saved, i) => {
+                const dl = saved.opportunity.deadline
+                const days = dl ? daysUntil(dl) : null
+                return (
+                  <div
+                    key={saved.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '14px 20px',
+                      borderBottom: i < savedOpportunities.length - 1 ? '1px solid var(--line)' : 'none',
+                      gap: 16,
+                    }}
+                  >
+                    <div>
+                      <p style={{ fontSize: 14, color: 'var(--ink)', fontWeight: 500 }}>
+                        {saved.opportunity.title}
+                      </p>
+                      <p className="body-sm">{saved.opportunity.category}</p>
+                    </div>
+                    {dl && days !== null && (
+                      <span
+                        className={`tag${days <= 30 && days >= 0 ? ' tag-warn' : ''}`}
+                        style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                      >
+                        {days < 0 ? 'Истёк' : days === 0 ? 'Сегодня' : `${days} дн.`}
+                      </span>
+                    )}
                   </div>
-                  {saved.opportunity.deadline && (
-                    <span className="text-xs text-gray-400 whitespace-nowrap">
-                      Due {saved.opportunity.deadline}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
+                )
+              })}
+            </div>
           )}
         </section>
 
-        {/* Courses */}
-        <section className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
-            My Courses
-          </h3>
-          <p className="text-sm text-gray-400">Coming soon.</p>
-        </section>
-
         {/* Upcoming Deadlines */}
-        <section className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">
-            Upcoming Deadlines
-          </h3>
-          <p className="text-sm text-gray-400">Coming soon.</p>
-        </section>
+        {upcomingDeadlines.length > 0 && (
+          <section style={{ marginBottom: 48 }}>
+            <p className="eyebrow" style={{ marginBottom: 16 }}>Ближайшие дедлайны</p>
+            <div className="card-flat" style={{ padding: 0 }}>
+              {upcomingDeadlines.map((saved, i) => {
+                const days = daysUntil(saved.opportunity.deadline!)
+                return (
+                  <div
+                    key={saved.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '14px 20px',
+                      borderBottom: i < upcomingDeadlines.length - 1 ? '1px solid var(--line)' : 'none',
+                      gap: 16,
+                    }}
+                  >
+                    <p style={{ fontSize: 14, color: 'var(--ink)', fontWeight: 500 }}>
+                      {saved.opportunity.title}
+                    </p>
+                    <span className={`tag${days <= 30 ? ' tag-warn' : ''}`} style={{ flexShrink: 0 }}>
+                      {days === 0 ? 'Сегодня' : `через ${days} дн.`}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Recommended opportunities */}
+        {recommended.length > 0 && (
+          <section>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16 }}>
+              <p className="eyebrow">Рекомендуется для вас</p>
+              <Link href="/opportunities" className="nav-link">Смотреть все →</Link>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
+              {recommended.slice(0, 3).map((opp) => (
+                <Link key={opp.id} href="/opportunities" style={{ textDecoration: 'none' }}>
+                  <div className="card-flat" style={{ height: '100%' }}>
+                    <span className="tag" style={{ display: 'inline-block', marginBottom: 10 }}>
+                      {opp.category}
+                    </span>
+                    <p style={{ fontSize: 15, color: 'var(--ink)', fontWeight: 500, lineHeight: 1.3 }}>
+                      {opp.title}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
       </main>
     </div>
   )

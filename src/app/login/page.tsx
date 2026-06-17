@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { signIn, signInWithGoogle, signUp } from './actions'
 
 export default function LoginPage() {
@@ -27,7 +28,7 @@ export default function LoginPage() {
     reset()
 
     if (mode === 'signup' && password !== confirmPassword) {
-      setError('Passwords do not match.')
+      setError('Пароли не совпадают.')
       return
     }
 
@@ -37,19 +38,18 @@ export default function LoginPage() {
           ? await signUp(email, password)
           : await signIn(email, password)
 
-   if (result && 'error' in result && result.error) {
-  setError(result.error)
-}
+      if (result && 'error' in result && result.error) {
+        setError(result.error)
+      }
 
-if (result && 'message' in result && result.message) {
-  setMessage(result.message)
-}
+      if (result && 'message' in result && result.message) {
+        setMessage(result.message)
+      }
     })
   }
 
   function handleGoogle() {
     reset()
-
     startTransition(async () => {
       const result = await signInWithGoogle()
       if (result?.error) setError(result.error)
@@ -57,29 +57,78 @@ if (result && 'message' in result && result.message) {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
-      <section className="w-full max-w-sm rounded-lg bg-white p-8 shadow">
-        <h1 className="mb-6 text-2xl font-semibold text-gray-900">
-          {mode === 'signin' ? 'Sign in' : 'Create account'}
+    <div style={{
+      background: 'var(--paper)',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px',
+    }}>
+
+      {/* Logo */}
+      <Link
+        href="/"
+        style={{
+          fontFamily: 'Instrument Serif, serif',
+          fontSize: 20,
+          letterSpacing: '-0.01em',
+          color: 'var(--ink)',
+          textDecoration: 'none',
+          marginBottom: 36,
+        }}
+      >
+        Mentoria Hub
+      </Link>
+
+      {/* Card */}
+      <div className="card-flat" style={{ width: '100%', maxWidth: 400, padding: '40px 36px' }}>
+
+        {/* Header */}
+        <p className="eyebrow" style={{ marginBottom: 10 }}>
+          {mode === 'signin' ? 'Вход' : 'Регистрация'}
+        </p>
+        <h1 className="display-sm" style={{ marginBottom: 28 }}>
+          {mode === 'signin' ? 'Войти' : 'Создать аккаунт'}
         </h1>
 
+        {/* Error */}
         {error && (
-          <p className="mb-4 rounded bg-red-50 p-3 text-sm text-red-600">
+          <div style={{
+            background: '#fdf0e8',
+            border: '1px solid #f5c4a0',
+            color: 'var(--warn)',
+            borderRadius: 4,
+            padding: '10px 14px',
+            fontSize: 13,
+            marginBottom: 20,
+          }}>
             {error}
-          </p>
+          </div>
         )}
 
+        {/* Success */}
         {message && (
-          <p className="mb-4 rounded bg-green-50 p-3 text-sm text-green-700">
+          <div style={{
+            background: '#e6f5ed',
+            border: '1px solid #a3d8b8',
+            color: 'var(--success)',
+            borderRadius: 4,
+            padding: '10px 14px',
+            fontSize: 13,
+            marginBottom: 20,
+          }}>
             {message}
-          </p>
+          </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Form */}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <label
               htmlFor="email"
-              className="mb-1 block text-sm font-medium text-gray-700"
+              style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--ink-2)', marginBottom: 6 }}
             >
               Email
             </label>
@@ -90,16 +139,16 @@ if (result && 'message' in result && result.message) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="student@example.com"
-              className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 caret-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input"
             />
           </div>
 
           <div>
             <label
               htmlFor="password"
-              className="mb-1 block text-sm font-medium text-gray-700"
+              style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--ink-2)', marginBottom: 6 }}
             >
-              Password
+              Пароль
             </label>
             <input
               id="password"
@@ -108,7 +157,7 @@ if (result && 'message' in result && result.message) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 caret-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input"
             />
           </div>
 
@@ -116,9 +165,9 @@ if (result && 'message' in result && result.message) {
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="mb-1 block text-sm font-medium text-gray-700"
+                style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--ink-2)', marginBottom: 6 }}
               >
-                Confirm password
+                Подтвердить пароль
               </label>
               <input
                 id="confirmPassword"
@@ -127,7 +176,7 @@ if (result && 'message' in result && result.message) {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 caret-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input"
               />
             </div>
           )}
@@ -135,57 +184,76 @@ if (result && 'message' in result && result.message) {
           <button
             type="submit"
             disabled={isPending}
-            className="w-full rounded bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="btn btn-dark"
+            style={{ width: '100%', justifyContent: 'center', marginTop: 4, opacity: isPending ? 0.6 : 1 }}
           >
             {isPending
-              ? 'Loading...'
+              ? 'Загрузка...'
               : mode === 'signin'
-                ? 'Sign in'
-                : 'Create account'}
+                ? 'Войти'
+                : 'Создать аккаунт'}
           </button>
         </form>
 
-        <div className="my-4 flex items-center gap-2">
-          <div className="h-px flex-1 bg-gray-200" />
-          <span className="text-xs text-gray-400">or</span>
-          <div className="h-px flex-1 bg-gray-200" />
+        {/* Divider */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
+          <hr className="rule" style={{ flex: 1 }} />
+          <span style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: '0.08em' }}>ИЛИ</span>
+          <hr className="rule" style={{ flex: 1 }} />
         </div>
 
+        {/* Google */}
         <button
           type="button"
           onClick={handleGoogle}
           disabled={isPending}
-          className="w-full rounded border border-gray-300 bg-white py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          className="btn btn-ghost"
+          style={{ width: '100%', justifyContent: 'center', opacity: isPending ? 0.6 : 1 }}
         >
-          Continue with Google
+          Продолжить с Google
         </button>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
+        {/* Mode toggle */}
+        <p style={{ marginTop: 24, textAlign: 'center', fontSize: 13, color: 'var(--ink-3)' }}>
           {mode === 'signin' ? (
             <>
-              No account?{' '}
+              Нет аккаунта?{' '}
               <button
                 type="button"
                 onClick={() => switchMode('signup')}
-                className="text-blue-600 hover:underline"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  color: 'var(--accent)',
+                }}
               >
-                Sign up
+                Зарегистрироваться
               </button>
             </>
           ) : (
             <>
-              Already have an account?{' '}
+              Уже есть аккаунт?{' '}
               <button
                 type="button"
                 onClick={() => switchMode('signin')}
-                className="text-blue-600 hover:underline"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  color: 'var(--accent)',
+                }}
               >
-                Sign in
+                Войти
               </button>
             </>
           )}
         </p>
-      </section>
-    </main>
+      </div>
+    </div>
   )
 }
