@@ -1,5 +1,16 @@
 export type UserRole = 'student' | 'admin'
 
+export type DNAType = 'Explorer' | 'Builder' | 'Competitor' | 'Researcher' | 'Strategist' | 'Creator'
+
+export interface LearningDNA {
+  id: string
+  user_id: string
+  dna_type: DNAType
+  dna_score_breakdown: Record<DNAType, number>
+  completed_at: string
+  created_at: string
+}
+
 export interface Profile {
   id: string
   full_name: string | null
@@ -104,6 +115,11 @@ export interface Database {
         Row: LessonProgress
         Insert: Omit<LessonProgress, 'id' | 'created_at'>
         Update: Partial<Omit<LessonProgress, 'id' | 'created_at'>>
+      }
+      learning_dna: {
+        Row: LearningDNA
+        Insert: Omit<LearningDNA, 'id' | 'created_at'>
+        Update: Partial<Omit<LearningDNA, 'id' | 'user_id' | 'created_at'>>
       }
     }
   }
