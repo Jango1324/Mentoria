@@ -37,8 +37,13 @@ export default function LoginPage() {
           ? await signUp(email, password)
           : await signIn(email, password)
 
-      if (result?.error) setError(result.error)
-      if (result?.message) setMessage(result.message)
+   if (result && 'error' in result && result.error) {
+  setError(result.error)
+}
+
+if (result && 'message' in result && result.message) {
+  setMessage(result.message)
+}
     })
   }
 
