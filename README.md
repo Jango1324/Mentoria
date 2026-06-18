@@ -144,7 +144,23 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Demo Login
 
-> Add demo credentials here before submission.
+The login page has two one-click demo buttons for judges. No typing required.
+
+| Button | Email | Password | Lands on |
+|---|---|---|---|
+| Student Demo | `student@mentoria.local` | `student123` | `/dashboard` |
+| Admin Demo | `admin@mentoria.local` | `admin123` | `/dashboard` (Admin link visible in nav) |
+
+**Important — accounts must exist in Supabase first.**
+Before the demo works, create both users manually in the Supabase dashboard under **Authentication → Users → Invite user** (or Add user), then run the following in the SQL Editor to mark them as onboarded and set the admin role:
+
+```sql
+-- After creating both users in Supabase Auth, get their UUIDs from Auth → Users, then:
+
+UPDATE profiles SET onboarded = true WHERE id = '<student-user-uuid>';
+
+UPDATE profiles SET onboarded = true, role = 'admin' WHERE id = '<admin-user-uuid>';
+```
 
 ---
 

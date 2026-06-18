@@ -56,6 +56,19 @@ export default function LoginPage() {
     })
   }
 
+  function handleDemo(role: 'student' | 'admin') {
+    reset()
+    const DEMO = {
+      student: { email: 'student@mentoria.local', password: 'student123' },
+      admin:   { email: 'admin@mentoria.local',   password: 'admin123'   },
+    }
+    const { email, password } = DEMO[role]
+    startTransition(async () => {
+      const result = await signIn(email, password)
+      if (result?.error) setError(result.error)
+    })
+  }
+
   return (
     <div style={{
       background: 'var(--paper)',
@@ -212,6 +225,50 @@ export default function LoginPage() {
         >
           Продолжить с Google
         </button>
+
+        {/* Demo access */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0 14px' }}>
+          <hr className="rule" style={{ flex: 1 }} />
+          <span style={{ fontSize: 11, color: 'var(--ink-3)', letterSpacing: '0.08em' }}>DEMO</span>
+          <hr className="rule" style={{ flex: 1 }} />
+        </div>
+
+        <p style={{
+          fontSize: 12,
+          color: 'var(--ink-3)',
+          textAlign: 'center',
+          marginBottom: 12,
+          lineHeight: 1.5,
+        }}>
+          For judges: use demo access to explore the platform instantly.
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <button
+            type="button"
+            onClick={() => handleDemo('student')}
+            disabled={isPending}
+            className="btn btn-ghost"
+            style={{ justifyContent: 'center', fontSize: 13, opacity: isPending ? 0.6 : 1 }}
+          >
+            Student Demo
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDemo('admin')}
+            disabled={isPending}
+            className="btn btn-ghost"
+            style={{
+              justifyContent: 'center',
+              fontSize: 13,
+              opacity: isPending ? 0.6 : 1,
+              borderColor: 'var(--accent)',
+              color: 'var(--accent)',
+            }}
+          >
+            Admin Demo
+          </button>
+        </div>
 
         {/* Mode toggle */}
         <p style={{ marginTop: 24, textAlign: 'center', fontSize: 13, color: 'var(--ink-3)' }}>
