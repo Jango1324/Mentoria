@@ -1,12 +1,29 @@
 import Link from 'next/link'
 import { signOut } from '@/app/login/actions'
 import ThemeToggle from './ThemeToggle'
+import { createClient } from '@/lib/supabase/server'
 
 interface Props {
   activePath?: string
 }
 
-export default function AppNav({ activePath }: Props) {
+export default async function AppNav({ activePath }: Props) {
+  let isAdmin = false
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+      isAdmin = (data as { role?: string } | null)?.role === 'admin'
+    }
+  } catch {
+    // silently fail — no admin link shown
+  }
+
   return (
     <nav style={{
       borderBottom: '1px solid var(--line)',
@@ -54,6 +71,15 @@ export default function AppNav({ activePath }: Props) {
           >
             Кабинет
           </Link>
+
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className={`nav-link${activePath === '/admin' ? ' active' : ''}`}
+            >
+              Admin
+            </Link>
+          )}
 
           <ThemeToggle />
 

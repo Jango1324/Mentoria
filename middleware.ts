@@ -1,3 +1,6 @@
+// Runs on every request before the page renders.
+// Responsibilities: refresh the Supabase session cookie, enforce auth redirects,
+// and redirect unonboarded users to /onboarding.
 import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 

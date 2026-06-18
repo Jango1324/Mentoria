@@ -1,5 +1,5 @@
 import AsciiBrainLoader from '@/components/AsciiBrainLoader'
 
-export default function CoursesLoading() {
+export default function Loading() {
   return <AsciiBrainLoader />
 }

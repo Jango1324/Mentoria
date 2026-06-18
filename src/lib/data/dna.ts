@@ -157,6 +157,7 @@ export const EMPTY_SCORES: Record<DNAType, number> = {
   Creator: 0,
 }
 
+// answers is { [questionId]: optionIndex }. Returns the top-scoring type and the full score map.
 export function calculateDNAType(
   answers: Record<number, number>
 ): { dnaType: DNAType; breakdown: Record<DNAType, number> } {

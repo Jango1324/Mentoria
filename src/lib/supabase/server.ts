@@ -1,3 +1,5 @@
+// Server-side Supabase client — use in Server Components, Server Actions, and Route Handlers.
+// Never import this in a Client Component; use src/lib/supabase/client.ts there instead.
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import type { Database } from '@/types'

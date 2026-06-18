@@ -1,8 +1,10 @@
 'use server'
 
+// Server Actions for the Student Vault — notes, tags, and knowledge graph links.
 import { createClient } from '@/lib/supabase/server'
 import type { Note, NoteLink, Tag } from '@/types'
 
+// Shared auth helper — all vault actions require an authenticated user.
 async function getAuthUser() {
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
@@ -43,6 +45,7 @@ export async function updateNote(
   return {}
 }
 
+// pos_x / pos_y store the node's position on the knowledge graph canvas.
 export async function updateNotePosition(
   id: string,
   pos_x: number,

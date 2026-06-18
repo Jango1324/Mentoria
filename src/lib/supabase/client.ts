@@ -1,3 +1,5 @@
+// Browser-side Supabase client — use only in Client Components ('use client').
+// For Server Components and Server Actions, use src/lib/supabase/server.ts instead.
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types'
 

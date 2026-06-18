@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import DisplayCourseCards from '@/components/DisplayCourseCards'
+import CourseDeck from '@/components/CourseDeck'
 import {
   getPublishedCourses,
   getCourseWithLessons,
@@ -45,15 +45,7 @@ export default async function CoursesPage() {
             <p className="body-sm">Нет доступных курсов.</p>
           </div>
         ) : (
-          <DisplayCourseCards
-            cards={coursesWithProgress.slice(0, 3).map(c => ({
-              title: c.title,
-              category: c.category,
-              description: c.description ?? '',
-              meta: `${c.totalLessons} уроков`,
-              href: `/courses/${c.id}`,
-            }))}
-          />
+          <CourseDeck courses={coursesWithProgress} />
         )}
       </main>
     </div>

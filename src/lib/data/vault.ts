@@ -1,3 +1,4 @@
+// Server-side read helpers for the Student Vault. Called from Server Components only.
 import { createClient } from '@/lib/supabase/server'
 import type { NoteLink, NoteWithTags, Tag } from '@/types'
 
@@ -12,6 +13,7 @@ export async function getNotes(userId: string): Promise<NoteWithTags[]> {
 
   if (error || !data) return []
 
+  // Supabase returns nested join rows — unwrap note_tags → tags into a flat Tag[].
   return data.map((note: any): NoteWithTags => {
     const { note_tags: rawNoteTags, ...noteFields } = note
     const tags: Tag[] = (rawNoteTags ?? [])
