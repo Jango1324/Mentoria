@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import ThemeToggle from '@/components/ThemeToggle'
 
 const stats = [
   { num: '50+', label: 'возможностей' },
@@ -56,6 +57,7 @@ export default function HomePage() {
             <Link href="/opportunities" className="nav-link hidden md:block">Возможности</Link>
             <Link href="/courses" className="nav-link hidden md:block">Курсы</Link>
             <Link href="/login" className="nav-link hidden md:block">Войти</Link>
+            <ThemeToggle />
             <Link href="/register" className="btn btn-dark" style={{ fontSize: 13 }}>Начать →</Link>
           </div>
         </div>
@@ -101,7 +103,7 @@ export default function HomePage() {
         <div className="marquee-wrap">
           <div className="marquee-track" style={{ gap: 0 }}>
             {allMarquee.map((item, i) => (
-              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', color: '#fff', fontSize: 12, fontWeight: 400, letterSpacing: '0.08em', padding: '0 28px', borderRight: '1px solid rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}>
+              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', color: 'var(--text-inverse)', fontSize: 12, fontWeight: 400, letterSpacing: '0.08em', padding: '0 28px', borderRight: '1px solid var(--bg-base)', whiteSpace: 'nowrap' }}>
                 {item}
               </span>
             ))}
@@ -189,20 +191,20 @@ export default function HomePage() {
       </section>
 
       {/* ── CTA ──────────────────────────────────────── */}
-      <section style={{ padding: '100px 0', background: 'var(--ink)', color: '#fff' }}>
+      <section style={{ padding: '100px 0', background: 'var(--text-primary)', color: 'var(--text-inverse)' }}>
         <div className="container-sm" style={{ textAlign: 'center' }}>
-          <p style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 24 }}>
+          <p style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-inverse)', opacity: 0.45, marginBottom: 24 }}>
             Присоединись к Mentoria
           </p>
-          <h2 style={{ fontFamily: 'Instrument Serif, serif', fontSize: 'clamp(2.5rem, 6vw, 5rem)', lineHeight: 1, letterSpacing: '-0.02em', color: '#fff', marginBottom: 32 }}>
+          <h2 style={{ fontFamily: 'Instrument Serif, serif', fontSize: 'clamp(2.5rem, 6vw, 5rem)', lineHeight: 1, letterSpacing: '-0.02em', color: 'var(--text-inverse)', marginBottom: 32 }}>
             Начни своё<br />
-            <span style={{ fontStyle: 'italic', color: 'rgba(255,255,255,0.6)' }}>академическое</span><br />
+            <span style={{ fontStyle: 'italic', color: 'var(--text-inverse)', opacity: 0.55 }}>академическое</span><br />
             путешествие
           </h2>
-          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.5)', marginBottom: 40, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 16, color: 'var(--text-inverse)', opacity: 0.55, marginBottom: 40, lineHeight: 1.6 }}>
             Ученики 8–11 классов из Казахстана и других стран
           </p>
-          <Link href="/register" className="btn" style={{ background: '#fff', color: 'var(--ink)', fontSize: 14, padding: '13px 28px' }}>
+          <Link href="/register" className="btn" style={{ background: 'var(--bg-raised)', color: 'var(--text-primary)', fontSize: 14, padding: '13px 28px' }}>
             Создать аккаунт бесплатно
           </Link>
         </div>

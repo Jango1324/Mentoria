@@ -102,8 +102,8 @@ export default function OnboardingPage() {
         {/* Error */}
         {error && (
           <div style={{
-            background: '#fdf0e8',
-            border: '1px solid #f5c4a0',
+            background: 'var(--warning-bg)',
+            border: '1px solid var(--warning-border)',
             color: 'var(--warn)',
             borderRadius: 4,
             padding: '10px 14px',
@@ -197,9 +197,9 @@ export default function OnboardingPage() {
                       letterSpacing: '0.02em',
                       padding: '6px 14px',
                       borderRadius: 100,
-                      border: `1px solid ${selected ? 'var(--ink)' : 'var(--line)'}`,
-                      background: selected ? 'var(--ink)' : '#fff',
-                      color: selected ? '#fff' : 'var(--ink-2)',
+                      border: `1px solid ${selected ? 'var(--text-primary)' : 'var(--line)'}`,
+                      background: selected ? 'var(--text-primary)' : 'var(--bg-raised)',
+                      color: selected ? 'var(--text-inverse)' : 'var(--ink-2)',
                       cursor: 'pointer',
                       transition: 'all 0.15s',
                     }}

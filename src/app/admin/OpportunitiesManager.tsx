@@ -148,8 +148,8 @@ function OppFormFields({
             fontWeight: 500,
             padding: '4px 12px',
             borderRadius: 100,
-            border: `1px solid ${form.is_active ? '#a3d8b8' : 'var(--line)'}`,
-            background: form.is_active ? '#e6f5ed' : '#fff',
+            border: `1px solid ${form.is_active ? 'var(--positive-border)' : 'var(--line)'}`,
+            background: form.is_active ? 'var(--positive-bg)' : 'var(--bg-raised)',
             color: form.is_active ? 'var(--success)' : 'var(--ink-3)',
             cursor: 'pointer',
             transition: 'all 0.15s',
@@ -243,8 +243,8 @@ export default function OpportunitiesManager({
       {/* Error */}
       {error && (
         <div style={{
-          background: '#fdf0e8',
-          border: '1px solid #f5c4a0',
+          background: 'var(--warning-bg)',
+          border: '1px solid var(--warning-border)',
           color: 'var(--warn)',
           borderRadius: 4,
           padding: '10px 14px',

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { signOut } from '@/app/login/actions'
+import ThemeToggle from './ThemeToggle'
 
 interface Props {
   activePath?: string
@@ -53,6 +54,9 @@ export default function AppNav({ activePath }: Props) {
           >
             Кабинет
           </Link>
+
+          <ThemeToggle />
+
           <form action={signOut} style={{ display: 'inline' }}>
             <button
               type="submit"

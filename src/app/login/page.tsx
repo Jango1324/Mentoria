@@ -96,8 +96,8 @@ export default function LoginPage() {
         {/* Error */}
         {error && (
           <div style={{
-            background: '#fdf0e8',
-            border: '1px solid #f5c4a0',
+            background: 'var(--warning-bg)',
+            border: '1px solid var(--warning-border)',
             color: 'var(--warn)',
             borderRadius: 4,
             padding: '10px 14px',
@@ -111,8 +111,8 @@ export default function LoginPage() {
         {/* Success */}
         {message && (
           <div style={{
-            background: '#e6f5ed',
-            border: '1px solid #a3d8b8',
+            background: 'var(--positive-bg)',
+            border: '1px solid var(--positive-border)',
             color: 'var(--success)',
             borderRadius: 4,
             padding: '10px 14px',

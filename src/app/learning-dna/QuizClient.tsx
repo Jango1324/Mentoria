@@ -120,9 +120,9 @@ export default function QuizClient({ opportunities, courses }: Props) {
                 style={{
                   textAlign: 'left',
                   padding: '15px 18px',
-                  background: isSelected ? 'var(--ink)' : '#fff',
-                  color: isSelected ? '#fff' : 'var(--ink)',
-                  border: `1px solid ${isSelected ? 'var(--ink)' : 'var(--line)'}`,
+                  background: isSelected ? 'var(--text-primary)' : 'var(--bg-raised)',
+                  color: isSelected ? 'var(--text-inverse)' : 'var(--ink)',
+                  border: `1px solid ${isSelected ? 'var(--text-primary)' : 'var(--line)'}`,
                   borderRadius: 4,
                   fontSize: 14,
                   lineHeight: 1.5,

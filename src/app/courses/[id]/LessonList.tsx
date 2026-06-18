@@ -52,8 +52,8 @@ export default function LessonList({ lessons, completedIds }: Props) {
           className="card-enter"
           style={{
             '--i': 0,
-            background: '#e6f5ed',
-            border: '1px solid #a3d8b8',
+            background: 'var(--positive-bg)',
+            border: '1px solid var(--positive-border)',
             borderRadius: 4,
             padding: '16px 20px',
             marginBottom: 20,
@@ -87,7 +87,7 @@ export default function LessonList({ lessons, completedIds }: Props) {
                 padding: '16px 20px',
                 border: '1px solid var(--line)',
                 borderRadius: 4,
-                background: done ? 'var(--paper-2)' : '#fff',
+                background: done ? 'var(--paper-2)' : 'var(--bg-raised)',
                 transition: 'background 0.2s',
               } as React.CSSProperties}
             >
