@@ -17,7 +17,7 @@ export default function AppNav({ activePath }: Props) {
     }}>
       <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 56 }}>
         <Link
-          href="/dashboard"
+          href="/"
           style={{ fontFamily: 'Instrument Serif, serif', fontSize: 18, letterSpacing: '-0.01em', color: 'var(--ink)', textDecoration: 'none' }}
         >
           Mentoria Hub

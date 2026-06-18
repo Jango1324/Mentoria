@@ -1,7 +1,6 @@
-import type React from 'react'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import DisplayCourseCards from '@/components/DisplayCourseCards'
 import {
   getPublishedCourses,
   getCourseWithLessons,
@@ -46,78 +45,15 @@ export default async function CoursesPage() {
             <p className="body-sm">Нет доступных курсов.</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
-            {coursesWithProgress.map((course, i) => (
-              <Link key={course.id} href={`/courses/${course.id}`} style={{ textDecoration: 'none' }}>
-                <div
-                  className="card-flat card-enter"
-                  style={{
-                    '--i': i,
-                    cursor: 'pointer',
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 12,
-                  } as React.CSSProperties}
-                >
-                  {/* Badges */}
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    <span className="tag">{course.category}</span>
-                    {course.pct === 100 && (
-                      <span className="tag tag-success">Завершён</span>
-                    )}
-                    {course.pct > 0 && course.pct < 100 && (
-                      <span className="tag tag-accent">В процессе</span>
-                    )}
-                  </div>
-
-                  {/* Title */}
-                  <h3 style={{
-                    fontFamily: 'Instrument Serif, serif',
-                    fontSize: 20,
-                    color: 'var(--ink)',
-                    lineHeight: 1.2,
-                  }}>
-                    {course.title}
-                  </h3>
-
-                  {/* Description */}
-                  {course.description && (
-                    <p className="body-sm" style={{
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                    }}>
-                      {course.description}
-                    </p>
-                  )}
-
-                  {/* Progress */}
-                  <div style={{ marginTop: 'auto', paddingTop: 8 }}>
-                    {course.pct > 0 ? (
-                      <>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                          <span className="body-sm">
-                            {course.completedLessons} из {course.totalLessons} уроков
-                          </span>
-                          <span className="body-sm">{course.pct}%</span>
-                        </div>
-                        <div className="progress">
-                          <div
-                            className="progress-fill accent progress-fill-mount"
-                            style={{ '--pct': `${course.pct}%`, '--i': i } as React.CSSProperties}
-                          />
-                        </div>
-                      </>
-                    ) : (
-                      <p className="body-sm">{course.totalLessons} уроков</p>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <DisplayCourseCards
+            cards={coursesWithProgress.slice(0, 3).map(c => ({
+              title: c.title,
+              category: c.category,
+              description: c.description ?? '',
+              meta: `${c.totalLessons} уроков`,
+              href: `/courses/${c.id}`,
+            }))}
+          />
         )}
       </main>
     </div>

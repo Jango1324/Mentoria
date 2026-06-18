@@ -205,20 +205,36 @@ export default function GraphView({ notes, links, selectedId, onSelectNote, onSa
 
       {/* Nodes */}
       <g>
-        {notes.map(note => {
+        {notes.map((note, noteIdx) => {
           const p = posMap.get(note.id)
           if (!p) return null
           const sel = selectedId === note.id
+          const floatDur = 4.5 + (noteIdx % 3) * 0.9
+          const floatDelay = (noteIdx * 0.65) % 3.5
           return (
             <g
               key={note.id}
               onClick={() => onSelectNote(note.id)}
-              style={{ cursor: 'pointer' }}
+              style={{
+                cursor: 'pointer',
+                animation: `nodeFloat ${floatDur}s ease-in-out infinite`,
+                animationDelay: `${floatDelay}s`,
+              }}
             >
+              {/* Soft halo for selected node */}
+              {sel && (
+                <circle
+                  cx={p.x} cy={p.y} r={NODE_R + 11}
+                  fill="none"
+                  stroke="rgba(139,92,246,0.42)"
+                  strokeWidth={2}
+                  style={{ animation: 'nodeHalo 2.8s ease-in-out infinite' }}
+                />
+              )}
               <circle
                 cx={p.x} cy={p.y} r={NODE_R}
-                fill={sel ? 'var(--ink)' : 'var(--paper)'}
-                stroke={sel ? 'var(--ink)' : 'var(--ink-3)'}
+                fill={sel ? 'rgba(139,92,246,0.82)' : 'rgba(79,70,229,0.14)'}
+                stroke={sel ? 'rgba(167,139,250,1)' : 'rgba(139,92,246,0.62)'}
                 strokeWidth={sel ? 2 : 1.5}
               />
               <text
@@ -229,7 +245,7 @@ export default function GraphView({ notes, links, selectedId, onSelectNote, onSa
                 fontSize={9}
                 fontFamily="Inter, sans-serif"
                 fontWeight={sel ? 600 : 500}
-                fill={sel ? 'var(--ink)' : 'var(--ink-3)'}
+                fill={sel ? 'rgba(167,139,250,0.95)' : 'rgba(139,92,246,0.72)'}
                 letterSpacing="0.02em"
               >
                 {trunc(note.title || 'Untitled', 18)}
