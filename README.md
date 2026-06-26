@@ -166,6 +166,164 @@ UPDATE profiles SET onboarded = true, role = 'admin' WHERE id = '<admin-user-uui
 
 ## Deployment
 
-The project is deployed on Vercel. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` as environment variables in the Vercel project settings.
+### Platform
 
-> Add the live URL here before submission.
+Vercel (free tier) + Supabase (free tier).
+
+---
+
+### Step 1 — Push to GitHub
+
+Make sure the latest code is pushed to your GitHub repository:
+
+```bash
+git push origin main
+```
+
+Verify that `.env.local` is **not** committed (it is gitignored via `.env*`).
+
+---
+
+### Step 2 — Import into Vercel
+
+1. Go to [vercel.com](https://vercel.com) and sign in.
+2. Click **Add New → Project**.
+3. Select your GitHub repository.
+4. Vercel auto-detects Next.js — leave all build settings at their defaults.
+
+---
+
+### Step 3 — Add Environment Variables in Vercel
+
+In the Vercel project settings under **Settings → Environment Variables**, add exactly these two variables:
+
+| Name | Value |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL (e.g. `https://xyzxyz.supabase.co`) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon/public key |
+
+Both values are found in your Supabase project under **Settings → API**.
+
+Set them for all three environments: **Production**, **Preview**, and **Development**.
+
+> **Security — do not add `SUPABASE_SERVICE_ROLE_KEY` to Vercel.** The service role key bypasses all Row Level Security policies and must never be exposed in a browser-accessible environment. Only the two `NEXT_PUBLIC_*` keys listed above are needed and safe.
+
+Then click **Deploy**.
+
+---
+
+### Step 4 — Note your Vercel URL
+
+After the first deploy finishes, Vercel gives you a URL like:
+
+```
+https://mentoria-hub.vercel.app
+```
+
+(or a custom domain if you set one)
+
+---
+
+### Step 5 — Configure Supabase Auth Settings
+
+In your Supabase project, go to **Authentication → URL Configuration** and set:
+
+| Setting | Value |
+|---|---|
+| **Site URL** | `https://your-project.vercel.app` |
+| **Redirect URLs** | `https://your-project.vercel.app/auth/callback` |
+
+Replace `your-project.vercel.app` with your actual Vercel URL.
+
+> **Why this matters:** Supabase blocks OAuth and magic-link redirects to any URL not on this list. Without it, Google Sign-In and email confirmation links will fail in production.
+
+---
+
+### Step 6 — Verify Row Level Security
+
+All user-data tables must have RLS enabled so that users can only access their own rows. Run this query in the Supabase SQL Editor to confirm:
+
+```sql
+SELECT
+  schemaname,
+  tablename,
+  rowsecurity
+FROM pg_tables
+WHERE schemaname = 'public'
+  AND tablename IN (
+    'profiles',
+    'saved_opportunities',
+    'lesson_progress',
+    'learning_dna',
+    'notes',
+    'note_links',
+    'note_tags',
+    'tags'
+  )
+ORDER BY tablename;
+```
+
+Every row in the `rowsecurity` column must show `true`. If any table shows `false`, run `ALTER TABLE public.<tablename> ENABLE ROW LEVEL SECURITY;` for that table and re-apply the policies from `supabase/schema.sql`.
+
+Tables that must have RLS enabled:
+
+- `learning_dna` — stores each user's quiz result
+- `notes` — user's personal notes
+- `tags` — tag names scoped per user
+- `note_tags` — links between notes and tags
+- `note_links` — directional links between notes
+
+---
+
+### Step 7 — Verify the deployment
+
+1. Open your Vercel URL.
+2. Sign up or use the demo login buttons on `/login`.
+3. Confirm you land on `/dashboard` after login.
+4. Confirm unauthenticated visits to `/dashboard` redirect to `/login`.
+
+---
+
+### Redeployments
+
+Every `git push origin main` triggers an automatic Vercel redeploy. No manual steps needed after initial setup.
+
+---
+
+## Deployment Checklist
+
+Use this checklist before going live or handing off to judges.
+
+### Vercel Environment Variables
+
+- [ ] `NEXT_PUBLIC_SUPABASE_URL` is set in Vercel (Production + Preview + Development)
+- [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` is set in Vercel (Production + Preview + Development)
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` is **not** present in Vercel env vars
+
+### Supabase Auth Configuration
+
+- [ ] **Site URL** set to `https://your-project.vercel.app` under **Authentication → URL Configuration**
+- [ ] **Redirect URLs** includes `https://your-project.vercel.app/auth/callback`
+- [ ] If using Google OAuth: Google OAuth callback URL `https://your-project.vercel.app/auth/callback` is added to the allowed redirect URIs in the Google Cloud Console and in Supabase **Authentication → Providers → Google**
+
+### Database
+
+- [ ] `supabase/schema.sql` has been run in the Supabase SQL Editor
+- [ ] RLS verification query (Step 6 above) shows `true` for all eight tables
+- [ ] Optional: `supabase/seed.sql` run for sample opportunities and courses
+
+### Demo Accounts
+
+- [ ] `student@mentoria.local` (password: `student123`) created in **Authentication → Users**
+- [ ] `admin@mentoria.local` (password: `admin123`) created in **Authentication → Users**
+- [ ] Both accounts marked onboarded and admin role set (see **Demo Login** section above)
+- [ ] Demo buttons on `/login` work end-to-end
+
+### Final Smoke Test
+
+- [ ] Landing page (`/`) loads without errors
+- [ ] Student demo login lands on `/dashboard`
+- [ ] Admin demo login shows **Admin** link in nav
+- [ ] `/vault` loads the notes editor and knowledge graph
+- [ ] `/learning-dna` quiz completes and saves result
+- [ ] Unauthenticated visit to `/dashboard` redirects to `/login`

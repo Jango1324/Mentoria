@@ -104,8 +104,16 @@ export async function addTagToNote(
   noteId: string,
   tagId: string
 ): Promise<{ error?: string }> {
-  const { supabase } = await getAuthUser()
-  if (!supabase) return { error: 'Not authenticated' }
+  const { supabase, user } = await getAuthUser()
+  if (!supabase || !user) return { error: 'Not authenticated' }
+
+  const { data: ownedNote, error: noteErr } = await (supabase as any)
+    .from('notes').select('id').eq('id', noteId).eq('user_id', user.id).single()
+  if (noteErr || !ownedNote) return { error: 'Note not found' }
+
+  const { data: ownedTag, error: tagErr } = await (supabase as any)
+    .from('tags').select('id').eq('id', tagId).eq('user_id', user.id).single()
+  if (tagErr || !ownedTag) return { error: 'Tag not found' }
 
   const { error } = await (supabase as any)
     .from('note_tags')
@@ -119,8 +127,12 @@ export async function removeTagFromNote(
   noteId: string,
   tagId: string
 ): Promise<{ error?: string }> {
-  const { supabase } = await getAuthUser()
-  if (!supabase) return { error: 'Not authenticated' }
+  const { supabase, user } = await getAuthUser()
+  if (!supabase || !user) return { error: 'Not authenticated' }
+
+  const { data: ownedNote, error: noteErr } = await (supabase as any)
+    .from('notes').select('id').eq('id', noteId).eq('user_id', user.id).single()
+  if (noteErr || !ownedNote) return { error: 'Note not found' }
 
   const { error } = await (supabase as any)
     .from('note_tags')
@@ -140,6 +152,14 @@ export async function createLink(
 ): Promise<{ data?: NoteLink; error?: string }> {
   const { supabase, user } = await getAuthUser()
   if (!supabase || !user) return { error: 'Not authenticated' }
+
+  const { data: sourceNote, error: sourceErr } = await (supabase as any)
+    .from('notes').select('id').eq('id', sourceNoteId).eq('user_id', user.id).single()
+  if (sourceErr || !sourceNote) return { error: 'Source note not found' }
+
+  const { data: targetNote, error: targetErr } = await (supabase as any)
+    .from('notes').select('id').eq('id', targetNoteId).eq('user_id', user.id).single()
+  if (targetErr || !targetNote) return { error: 'Target note not found' }
 
   const { data, error } = await (supabase as any)
     .from('note_links')
